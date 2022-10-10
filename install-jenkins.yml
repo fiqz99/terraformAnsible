@@ -1,0 +1,42 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+
+    - name: Install open JDK
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Install jenins apt repository key
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        state: present
+
+    - name: Configure the repository
+      apt_repository:
+        repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
+
+    - name: Install jenkins
+      apt:
+        name: jenkins
+        update_cache: yes
+
+    - name: Run jenkins
+      service:
+        name: jenkins
+        state: started
+
+    - name: Print password for jenkins
+      shell: |
+        cat /var/lib/jenkins/secrets/initialAdminPassword
+      register: jenkins_pwd
+
+    - name: "Print the file content to a console"
+      debug:
+        msg: "{{ jenkins_pwd.stdout }}"
